@@ -5,7 +5,7 @@
 #include <cmath>
 #include <expected>
 
-#define PRINT_PRECISION 3
+#define PRECISION 6
 
 // Concept for constraining precision of required matices and such with help of a generic
 // class that can represent number using matissa and exponent without requiring float/int
@@ -51,6 +51,7 @@ class Vector {
         Matrix<T> row_mat() const;
         std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
         std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other) const;
+        bool operator==(const Vector<T>& other) const;
 
         friend std::ostream& operator<< <T>(std::ostream& os, const Vector<T>& vec);
 
@@ -87,6 +88,7 @@ class Matrix {
 
         std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other) const;
         std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
+        bool operator==(const Matrix<T>& other) const;
 
         friend std::ostream& operator<< <T>(std::ostream& os, const Matrix<T>& vec);
 

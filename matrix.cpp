@@ -110,6 +110,18 @@ Vector<T>::operator|(const Matrix<T>& other) const {
     return mat1 | mat2;
 }
 
+// Vector operator|
+// check wether two vectors are equal in value
+template<Numeric T> bool
+Vector<T>::operator==(const Vector<T>& other) const {
+    if (k != other.k)
+        return false;
+    bool equal = true;
+    for (int i=0; i<k; i++)
+        equal = std::abs(data[i] - other.data[i]) < 1e-6;
+    return equal;
+}
+
 // Vector operator<<
 // simply displays the vector into terminal
 template<Numeric T> std::ostream&
@@ -121,7 +133,7 @@ operator<<(std::ostream& os, const Vector<T>& vec) {
     os << "[";
     for (int i=0; i<k; i++)
         os  << " "
-            << std::setprecision(PRINT_PRECISION)
+            << std::setprecision(PRECISION)
             << data[i] << ""
             << (i==k-1 ? "": ",");
     os << "]";
@@ -221,6 +233,18 @@ Matrix<T>::operator|(const Matrix<T>& other) const {
     return Matrix(result, (int) m, (int) s);
 }
 
+// Matrix operator|
+// check wether two matricess are equal in value
+template<Numeric T> bool
+Matrix<T>::operator==(const Matrix<T>& other) const {
+    if (n != other.n || m != other.m)
+        return false;
+    bool equal = true;
+    for (int i=0; i<m*n; i++)
+        equal = std::abs(data[i] - other.data[i]) < 1e-6;
+    return equal;
+}
+
 // Matrix operator<<
 // simply displays matrix in ostream
 template<Numeric T> std::ostream&
@@ -235,7 +259,7 @@ operator<<(std::ostream& os, const Matrix<T>& mat) {
         os  << "\t[";
         for (int j=0; j<n; j++)
             os  << " "
-                << std::setprecision(PRINT_PRECISION)
+                << std::setprecision(PRECISION)
                 << data[i*n+j] << ""
                 << (j==n-1 ? "": ",");
         os  << "]"
