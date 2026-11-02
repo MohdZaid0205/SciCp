@@ -133,6 +133,7 @@ operator<<(std::ostream& os, const Vector<T>& vec) {
 
 #pragma region MatrixImplementation
 
+// Matrix operator+
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator+(const Matrix<T>& other) const {
 
@@ -146,6 +147,7 @@ Matrix<T>::operator+(const Matrix<T>& other) const {
     return Matrix(result, m, n);
 }
 
+// Matrix operator-
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator-(const Matrix<T>& other) const {
 
@@ -159,6 +161,7 @@ Matrix<T>::operator-(const Matrix<T>& other) const {
     return Matrix(result, m, n);
 }
 
+// Matrix operator*
 template<Numeric T> Matrix<T>
 Matrix<T>::operator*(Numeric auto& other) const {
 
@@ -169,6 +172,7 @@ Matrix<T>::operator*(Numeric auto& other) const {
     return Matrix(result, m, n);
 }
 
+// Matrix operator/
 template<Numeric T> Matrix<T>
 Matrix<T>::operator/(Numeric auto& other) const {
 
@@ -179,12 +183,15 @@ Matrix<T>::operator/(Numeric auto& other) const {
     return Matrix(result, m, n);
 }
 
+// Matrix operator+
+// Provides support for matrix multiplication if possible
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator*(const Matrix<T>& other) {
     return std::unexpected<std::string>("NOT IMPLEMENTED");
 }
 
-
+// Matrix operator|
+// Provides support for augmenting matrix with a column vector
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator|(const Vector<T>& other) const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
@@ -193,6 +200,8 @@ Matrix<T>::operator|(const Vector<T>& other) const {
     return mat1 | mat2;
 }
 
+// Matrix operator|
+// Provides support for augmenting matrix with another matrix
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator|(const Matrix<T>& other) const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
@@ -212,6 +221,8 @@ Matrix<T>::operator|(const Matrix<T>& other) const {
     return Matrix(result, (int) m, (int) s);
 }
 
+// Matrix operator<<
+// simply displays matrix in ostream
 template<Numeric T> std::ostream&
 operator<<(std::ostream& os, const Matrix<T>& mat) {
 
@@ -239,6 +250,8 @@ operator<<(std::ostream& os, const Matrix<T>& mat) {
 
 #pragma region HelperImplementation
 
+// Matrix operator|
+// provides support for error and result propogation during augmentation
 template<Numeric T> std::expected<Matrix<T>, std::string> 
 operator|(const std::expected<Matrix<T>, std::string>& lhs, const Vector<T>& rhs) {
     if (!lhs.has_value())
@@ -246,6 +259,8 @@ operator|(const std::expected<Matrix<T>, std::string>& lhs, const Vector<T>& rhs
     return lhs.value() | rhs;
 }
 
+// Matrix operator|
+// provides support for error and result propogation during augmentation
 template<Numeric T> std::expected<Matrix<T>, std::string> 
 operator|(const std::expected<Matrix<T>, std::string>& lhs, const Matrix<T>& rhs) {
     if (!lhs.has_value())
