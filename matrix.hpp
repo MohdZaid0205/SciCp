@@ -69,8 +69,8 @@ class Matrix {
     public:
         Matrix(std::vector<T> _d, Integer auto _m, Integer auto _n): data(_d), m(_m), n(_n) {}
 
-        Matrix<T> operator+(const Matrix<T>& other) const;
-        Matrix<T> operator-(const Matrix<T>& other) const;
+        std::expected<Matrix<T>, std::string> operator+(const Matrix<T>& other) const;
+        std::expected<Matrix<T>, std::string> operator-(const Matrix<T>& other) const;
         Matrix<T> operator*(Numeric auto& other) const;
         Matrix<T> operator/(Numeric auto& other) const;
 
@@ -85,8 +85,8 @@ class Matrix {
             static Matrix<T> HH(const Matrix<T>& matrix);
         };
 
-        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
         std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other);
+        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
 
         friend std::ostream& operator<< <T>(std::ostream& os, const Matrix<T>& vec);
 

@@ -1,7 +1,8 @@
 #include "matrix.hpp"
+#include <expected>
 #include <iomanip>
 
-// VECTOR function implementations
+#pragma region VectorImplementaion
 
 // Vector operator+
 template<Numeric T> std::expected<Vector<T>, std::string>
@@ -86,7 +87,7 @@ Vector<T>::operator~() const {
     for (int i=0; i<k; i++)
         result[i] = data[i]/norm;
 
-    return Vector(result, (int) k);
+    return Vector(result, k);
 }
 
 // Vector operator|
@@ -127,6 +128,77 @@ operator<<(std::ostream& os, const Vector<T>& vec) {
 
     return os;
 }
+
+#pragma endregion
+
+#pragma region MatrixImplementation
+
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Matrix<T>::operator+(const Matrix<T>& other) const {
+
+    if (m != other.m || n != other.n)
+        return std::unexpected<std::string>("Cannot + on matrices of incompatible sizes");
+
+    std::vector<T> result(m*n);
+    for (int i=0; i<m*n; i++)
+        result[i] = data[i] + other.data[i];
+
+    return Matrix(result, m, n);
+}
+
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Matrix<T>::operator-(const Matrix<T>& other) const {
+
+    if (m != other.m || n != other.n)
+        return std::unexpected<std::string>("Cannot + on matrices of incompatible sizes");
+
+    std::vector<T> result(m*n);
+    for (int i=0; i<m*n; i++)
+        result[i] = data[i] - other.data[i];
+
+    return Matrix(result, m, n);
+}
+
+template<Numeric T> Matrix<T>
+Matrix<T>::operator*(Numeric auto& other) const {
+
+    std::vector<T> result(m*n);
+    for (int i=0; i<m*n; i++)
+        result[i] = data[i] * other;
+
+    return Matrix(result, m, n);
+}
+
+template<Numeric T> Matrix<T>
+Matrix<T>::operator/(Numeric auto& other) const {
+
+    std::vector<T> result(m*n);
+    for (int i=0; i<m*n; i++)
+        result[i] = data[i] / other;
+
+    return Matrix(result, m, n);
+}
+
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Matrix<T>::operator*(const Matrix<T>& other) {
+    return std::unexpected<std::string>("NOT IMPLEMENTED");
+}
+
+
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Matrix<T>::operator|(const Vector<T>& other) {
+    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    auto mat1 = *this;
+    auto mat2 = other.col_mat();
+    return mat1 | mat2;
+}
+
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Matrix<T>::operator|(const Matrix<T>& other) {
+    return std::unexpected<std::string>("NOT IMPLEMENTED");
+}
+
+#pragma endregion
 
 int main(int argc, char** argv) {
     return 0;
