@@ -48,9 +48,13 @@ class Vector {
 
         std::expected<Matrix<T>, std::string> col_mat() const;
         std::expected<Matrix<T>, std::string> row_mat() const;
-        std::expected<Vector<T>, std::string> operator%(const Vector<T>& other);
+        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
+        std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other);
 
         friend std::ostream& operator<< <T>(std::ostream& os, const Vector<T>& vec);
+
+    public:
+        friend class Matrix<T>;
 };
 
 
@@ -78,5 +82,11 @@ class Matrix {
         static Matrix<T> GR(const Matrix<T>& matrix);
         static Matrix<T> HH(const Matrix<T>& matrix);
 
+        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
+        std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other);
+
         friend std::ostream& operator<< <T>(std::ostream& os, const Matrix<T>& vec);
+
+    public:
+        friend class Vector<T>;
 };

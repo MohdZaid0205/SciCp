@@ -3,6 +3,7 @@
 
 // VECTOR function implementations
 
+// Vector operator+
 template<Numeric T> std::expected<Vector<T>, std::string>
 Vector<T>::operator+(const Vector<T>& other) const {
 
@@ -16,6 +17,7 @@ Vector<T>::operator+(const Vector<T>& other) const {
     return Vector(add, k);
 }
 
+// Vector operator-
 template<Numeric T> std::expected<Vector<T>, std::string>
 Vector<T>::operator-(const Vector<T>& other) const {
 
@@ -29,6 +31,7 @@ Vector<T>::operator-(const Vector<T>& other) const {
     return Vector(sub, k);
 }
 
+// Vector operator*
 template<Numeric T> Vector<T>
 Vector<T>::operator*(Numeric auto& other) const {
 
@@ -39,6 +42,7 @@ Vector<T>::operator*(Numeric auto& other) const {
     return Vector(mul);
 }
 
+// Vector operator/
 template<Numeric T> Vector<T>
 Vector<T>::operator/(Numeric auto& other) const {
 
@@ -49,18 +53,24 @@ Vector<T>::operator/(Numeric auto& other) const {
     return Vector(div);
 }
 
+// Vector to.col_mat
+// converts vector into matrix with sufficient dimensions
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Vector<T>::col_mat() const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
     return Matrix(data, k, 1);
 }
 
+// Vector to.row_mat
+// converts vector into matrix with sufficient dimentions
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Vector<T>::row_mat() const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
     return Matrix(data, 1, k);
 }
 
+// Vector operator~
+// returns a new vector equivalent to nomalized vector
 template<Numeric T> std::expected<Vector<T>, std::string>
 Vector<T>::operator~() const {
 
@@ -79,11 +89,28 @@ Vector<T>::operator~() const {
     return Vector(result, (int) k);
 }
 
-template<Numeric T> std::expected<Vector<T>, std::string>
-Vector<T>::operator%(const Vector<T>& other) {
-    return std::unexpected<std::string>("NOT IMPLEMENTED");
+// Vector operator|
+// returns a new matrix equivalent to this augment other
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Vector<T>::operator|(const Vector<T>& other) {
+    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    auto mat1 = this->col_mat();
+    auto mat2 = other.col_mat();
+    return mat1 | mat2;
 }
 
+// Vector operator|
+// returns new matrix equivalent to this augment other
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Vector<T>::operator|(const Matrix<T>& other) {
+    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    auto mat1 = this->col_mat();
+    auto mat2 = other;
+    return mat1 | mat2;
+}
+
+// Vector operator<<
+// simply displays the vector into terminal
 template<Numeric T> std::ostream&
 operator<<(std::ostream& os, const Vector<T>& vec) {
 
