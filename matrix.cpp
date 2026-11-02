@@ -56,18 +56,18 @@ Vector<T>::operator/(Numeric auto& other) const {
 
 // Vector to.col_mat
 // converts vector into matrix with sufficient dimensions
-template<Numeric T> std::expected<Matrix<T>, std::string>
+template<Numeric T> Matrix<T>
 Vector<T>::col_mat() const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
-    return Matrix(data, k, 1);
+    return Matrix(data, (int) k, 1);
 }
 
 // Vector to.row_mat
 // converts vector into matrix with sufficient dimentions
-template<Numeric T> std::expected<Matrix<T>, std::string>
+template<Numeric T> Matrix<T>
 Vector<T>::row_mat() const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
-    return Matrix(data, 1, k);
+    return Matrix(data, 1, (int) k);
 }
 
 // Vector operator~
@@ -93,7 +93,7 @@ Vector<T>::operator~() const {
 // Vector operator|
 // returns a new matrix equivalent to this augment other
 template<Numeric T> std::expected<Matrix<T>, std::string>
-Vector<T>::operator|(const Vector<T>& other) {
+Vector<T>::operator|(const Vector<T>& other) const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
     auto mat1 = this->col_mat();
     auto mat2 = other.col_mat();
@@ -103,7 +103,7 @@ Vector<T>::operator|(const Vector<T>& other) {
 // Vector operator|
 // returns new matrix equivalent to this augment other
 template<Numeric T> std::expected<Matrix<T>, std::string>
-Vector<T>::operator|(const Matrix<T>& other) {
+Vector<T>::operator|(const Matrix<T>& other) const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
     auto mat1 = this->col_mat();
     auto mat2 = other;
@@ -186,7 +186,7 @@ Matrix<T>::operator*(const Matrix<T>& other) {
 
 
 template<Numeric T> std::expected<Matrix<T>, std::string>
-Matrix<T>::operator|(const Vector<T>& other) {
+Matrix<T>::operator|(const Vector<T>& other) const {
     // return std::unexpected<std::string>("NOT IMPLEMENTED");
     auto mat1 = *this;
     auto mat2 = other.col_mat();
@@ -194,12 +194,76 @@ Matrix<T>::operator|(const Vector<T>& other) {
 }
 
 template<Numeric T> std::expected<Matrix<T>, std::string>
-Matrix<T>::operator|(const Matrix<T>& other) {
-    return std::unexpected<std::string>("NOT IMPLEMENTED");
+Matrix<T>::operator|(const Matrix<T>& other) const {
+    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    auto k = other.n;
+    auto s = n + k;
+
+    if (m != other.m)
+        return std::unexpected<std::string>("cannot augment different sized columns");
+
+    std::vector<T> result((n + other.n)*m);
+    for (int i=0; i<m;i++) {
+        for (int j=0; j<n; j++)
+            result[i*s+j] = data[i*n+j];
+        for (int j=0; j<k; j++)
+            result[i*s+n+j] = other.data[i*k+j];
+    }
+    return Matrix(result, (int) m, (int) s);
+}
+
+template<Numeric T> std::ostream&
+operator<<(std::ostream& os, const Matrix<T>& mat) {
+
+    auto m    = mat.m;
+    auto n    = mat.n;
+    auto data = mat.data;
+
+    os << "[" << std::endl;
+    for (int i=0; i<m; i++) {
+        os  << "\t[";
+        for (int j=0; j<n; j++)
+            os  << " "
+                << std::setprecision(PRINT_PRECISION)
+                << data[i*n+j] << ""
+                << (j==n-1 ? "": ",");
+        os  << "]"
+            << (i==m-1 ? "": ",")
+            << std::endl;;
+    }
+    os << "]";
+    return os;
 }
 
 #pragma endregion
 
+#pragma region HelperImplementation
+
+template<Numeric T> std::expected<Matrix<T>, std::string> 
+operator|(const std::expected<Matrix<T>, std::string>& lhs, const Vector<T>& rhs) {
+    if (!lhs.has_value())
+        return lhs;
+    return lhs.value() | rhs;
+}
+
+template<Numeric T> std::expected<Matrix<T>, std::string> 
+operator|(const std::expected<Matrix<T>, std::string>& lhs, const Matrix<T>& rhs) {
+    if (!lhs.has_value())
+        return lhs;
+    return lhs.value() | rhs;
+}
+
+#pragma endregion
+
+
 int main(int argc, char** argv) {
+    auto vec1 = Vector<double>({1, 0, 0}, 3);
+    auto vec2 = Vector<double>({0, 1, 0}, 3);
+    auto vec3 = Vector<double>({0, 0, 1}, 3);
+    std::cout << "VEC 1" << " " << vec1 << std::endl;
+    std::cout << "VEC 2" << " " << vec2 << std::endl;
+    std::cout << "VEC 3" << " " << vec3 << std::endl;
+    auto aug1 = vec1 | vec2 | vec3;
+    std::cout << "MAT 1" << " " << aug1.value() << std::endl;
     return 0;
 }

@@ -47,10 +47,10 @@ class Vector {
         Vector<T> operator/(Numeric auto& other) const;
         std::expected<Vector<T>, std::string> operator~() const;  // normalization
 
-        std::expected<Matrix<T>, std::string> col_mat() const;
-        std::expected<Matrix<T>, std::string> row_mat() const;
-        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
-        std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other);
+        Matrix<T> col_mat() const;
+        Matrix<T> row_mat() const;
+        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
+        std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other) const;
 
         friend std::ostream& operator<< <T>(std::ostream& os, const Vector<T>& vec);
 
@@ -85,8 +85,8 @@ class Matrix {
             static Matrix<T> HH(const Matrix<T>& matrix);
         };
 
-        std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other);
-        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
+        std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other) const;
+        std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
 
         friend std::ostream& operator<< <T>(std::ostream& os, const Matrix<T>& vec);
 
