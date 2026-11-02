@@ -1,14 +1,18 @@
 #include <concepts>
 #include <iostream>
+#include <ostream>
 #include <vector>
+#include <cmath>
 #include <expected>
+
+#define PRINT_PRECISION 3
 
 // Concept for constraining precision of required matices and such with help of a generic
 // class that can represent number using matissa and exponent without requiring float/int
 
 template<typename T> concept Floating = std::same_as<T, float> || std::same_as<T, double>;
-template<typename T> concept Intiger  = std::same_as<T, int>   || std::same_as<T, long>;
-template<typename T> concept Numeric  = Floating<T> || Intiger<T>;
+template<typename T> concept Integer  = std::same_as<T, int>   || std::same_as<T, long>;
+template<typename T> concept Numeric  = Floating<T> || Integer<T>;
 
 template<Numeric T> class Vector;
 template<Numeric T> class Matrix;
@@ -34,20 +38,19 @@ class Vector {
         long long int k;
 
     public:
-        Vector(std::vector<T> _d, Intiger auto _k): data(_d), k(_k) {}
+        Vector(std::vector<T> _d, Integer auto _k): data(_d), k(_k) {}
 
         std::expected<Vector<T>, std::string> operator+(const Vector<T>& other) const;
         std::expected<Vector<T>, std::string> operator-(const Vector<T>& other) const;
         Vector<T> operator*(Numeric auto& other) const;
         Vector<T> operator/(Numeric auto& other) const;
+        std::expected<Vector<T>, std::string> operator~() const;  // normalization
 
-        friend std::expected<Matrix<T>, std::string> operator*(const Vector<T>& other);
-        friend std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other);
+        std::expected<Matrix<T>, std::string> col_mat() const;
+        std::expected<Matrix<T>, std::string> row_mat() const;
+        std::expected<Vector<T>, std::string> operator%(const Vector<T>& other);
 
-        Vector<T> operator~() const;    // normalization
-        Vector<T> operator!() const;    // transpose
-
-        std::expected<Vector<T>, std::string> operator%(const Vector<T>& other);    // projection
+        friend std::ostream& operator<< <T>(std::ostream& os, const Vector<T>& vec);
 };
 
 
@@ -55,18 +58,18 @@ template<Numeric T>
 class Matrix {
     private:
         std::vector<T> data;
-        long long n;
-        long long m;
+        long long m; // rows
+        long long n; // cols
 
     public:
-        Matrix(std::vector<T> _d, Intiger auto _n, Intiger auto _m): data(_d), n(_n), m(_m) {}
+        Matrix(std::vector<T> _d, Integer auto _m, Integer auto _n): data(_d), m(_m), n(_n) {}
 
         Matrix<T> operator+(const Matrix<T>& other) const;
         Matrix<T> operator-(const Matrix<T>& other) const;
         Matrix<T> operator*(Numeric auto& other) const;
         Matrix<T> operator/(Numeric auto& other) const;
 
-        std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other) const;
+        std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other);
 
         static Matrix<T> gaussian(const Matrix<T>& matrix);
         static Matrix<T> cholesky(const Matrix<T>& matrix);
@@ -74,4 +77,6 @@ class Matrix {
         static Matrix<T> GS(const Matrix<T>& matrix);
         static Matrix<T> GR(const Matrix<T>& matrix);
         static Matrix<T> HH(const Matrix<T>& matrix);
+
+        friend std::ostream& operator<< <T>(std::ostream& os, const Matrix<T>& vec);
 };
