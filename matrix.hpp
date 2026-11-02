@@ -12,10 +12,6 @@
 
 template<typename T> concept Floating = std::same_as<T, float> || std::same_as<T, double>;
 template<typename T> concept Integer  = std::same_as<T, int>   || std::same_as<T, long>;
-template<typename T> concept Numeric  = Floating<T> || Integer<T>;
-
-template<Numeric T> class Vector;
-template<Numeric T> class Matrix;
 
 template<typename T> concept Arithematic = requires(T a, T b) {
     {a + b} -> std::same_as<T>;     // a + b -> T
@@ -29,6 +25,11 @@ template<typename T> concept PartialOrd  = requires(T a, T b) {
     {a  > b} -> std::same_as<bool>;
     {a  < b} -> std::same_as<bool>;
 };
+
+template<typename T> concept Numeric = Floating<T> || Integer<T> || (Arithematic<T> && PartialOrd<T>);
+
+template<Numeric T> class Vector;
+template<Numeric T> class Matrix;
 
 
 template<Numeric T>
@@ -75,12 +76,14 @@ class Matrix {
 
         std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other);
 
-        static Matrix<T> gaussian(const Matrix<T>& matrix);
-        static Matrix<T> cholesky(const Matrix<T>& matrix);
-        static Matrix<T> LU(const Matrix<T>& matrix);
-        static Matrix<T> GS(const Matrix<T>& matrix);
-        static Matrix<T> GR(const Matrix<T>& matrix);
-        static Matrix<T> HH(const Matrix<T>& matrix);
+        class Operations {
+            static Matrix<T> gaussian(const Matrix<T>& matrix);
+            static Matrix<T> cholesky(const Matrix<T>& matrix);
+            static Matrix<T> LU(const Matrix<T>& matrix);
+            static Matrix<T> GS(const Matrix<T>& matrix);
+            static Matrix<T> GR(const Matrix<T>& matrix);
+            static Matrix<T> HH(const Matrix<T>& matrix);
+        };
 
         std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other);
         std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other);
