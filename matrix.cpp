@@ -198,8 +198,34 @@ Matrix<T>::operator/(Numeric auto& other) const {
 // Matrix operator+
 // Provides support for matrix multiplication if possible
 template<Numeric T> std::expected<Matrix<T>, std::string>
-Matrix<T>::operator*(const Matrix<T>& other) {
-    return std::unexpected<std::string>("NOT IMPLEMENTED");
+Matrix<T>::operator*(const Matrix<T>& other) const {
+    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    auto n1 = this->n;
+    auto m1 = this->m;
+    auto n2 = other.n;
+    auto m2 = other.m;
+    auto data1 = this->data;
+    auto data2 = other.data;
+
+    if (n1 != m2)
+        return std::unexpected<std::string>("Improper dimensions for matrix multiplication");
+
+    std::vector<T> result(m1*n2, 0);
+    for (int i=0; i<m1; i++)
+        for (int j=0; j<n2; j++)
+            for (int k=0; k<n1; k++)
+                result[i*n2+j] += data1[i*n1+k]*data2[k*n2+j];
+
+    return Matrix(result, (int) m1, (int) n2);
+}
+
+// Matrix operator+
+// Provides support for matrix multiplication if possible
+template<Numeric T> std::expected<Matrix<T>, std::string>
+Matrix<T>::operator*(const Vector<T>& other) const {
+    auto mat1 = *this;
+    auto mat2 = other.col_mat();
+    return mat1 * mat2;
 }
 
 // Matrix operator|
@@ -292,6 +318,60 @@ operator|(const std::expected<Matrix<T>, std::string>& lhs, const Matrix<T>& rhs
     return lhs.value() | rhs;
 }
 
+// Matrix operator|
+// provides support for error and result propogation during augmentation
+template<Numeric T> std::expected<Matrix<T>, std::string>
+operator|(const Vector<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs) {
+    if (!rhs.has_value())
+        return rhs;
+    return lhs | rhs.value();
+}
+
+// Matrix operator|
+// provides support for error and result propogation during augmentation
+template<Numeric T> std::expected<Matrix<T>, std::string>
+operator|(const Matrix<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs) {
+    if (!rhs.has_value())
+        return rhs;
+    return lhs | rhs.value();
+}
+
+// Matrix operator*
+// provides support fot error and result propogation during multiplication
+template<Numeric T> std::expected<Matrix<T>, std::string>
+operator*(const std::expected<Matrix<T>, std::string>& lhs, const Vector<T>& rhs) {
+    if (!lhs.has_value())
+        return lhs;
+    return lhs.value() * rhs.col_mat();
+}
+
+// Matrix operator*
+// provides support fot error and result propogation during multiplication
+template<Numeric T> std::expected<Matrix<T>, std::string>
+operator*(const std::expected<Matrix<T>, std::string>& lhs, const Matrix<T>& rhs) {
+    if (!lhs.has_value())
+        return lhs;
+    return lhs.value() * rhs;
+}
+
+// Matrix operator|
+// provides support for error and result propogation during augmentation
+template<Numeric T> std::expected<Matrix<T>, std::string>
+operator*(const Vector<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs) {
+    if (!rhs.has_value())
+        return rhs;
+    return lhs.col_mat() * rhs.value();
+}
+
+// Matrix operator|
+// provides support for error and result propogation during augmentation
+template<Numeric T> std::expected<Matrix<T>, std::string>
+operator*(const Matrix<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs) {
+    if (!rhs.has_value())
+        return rhs;
+    return lhs * rhs.value();
+}
+
 #pragma endregion
 
 
@@ -302,7 +382,17 @@ int main(int argc, char** argv) {
     std::cout << "VEC 1" << " " << vec1 << std::endl;
     std::cout << "VEC 2" << " " << vec2 << std::endl;
     std::cout << "VEC 3" << " " << vec3 << std::endl;
-    auto aug1 = vec1 | vec2 | vec3;
-    std::cout << "MAT 1" << " " << aug1.value() << std::endl;
+    auto aug1 = vec2 | vec1 | vec3;
+    auto mat1 = aug1.value();
+    auto mat2 = Matrix<double>({
+            1, 2, 3,
+            4, 5, 6,
+            7, 8, 9,
+        }, 3, 3);
+    std::cout << "MAT 1" << " " << mat1 << std::endl;
+    std::cout << "MAT 2" << " " << mat2 << std::endl;
+    auto mul1 = mat1 * mat2 * vec1;
+    auto mat3 = mul1.value();
+    std::cout << "MAT 3" << " " << mat3 << std::endl;
     return 0;
 }

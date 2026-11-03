@@ -75,7 +75,8 @@ class Matrix {
         Matrix<T> operator*(Numeric auto& other) const;
         Matrix<T> operator/(Numeric auto& other) const;
 
-        std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other);
+        std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other) const;
+        std::expected<Matrix<T>, std::string> operator*(const Vector<T>& other) const;
 
         class Operations {
             static Matrix<T> gaussian(const Matrix<T>& matrix);
