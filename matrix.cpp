@@ -228,6 +228,16 @@ Matrix<T>::operator*(const Vector<T>& other) const {
     return mat1 * mat2;
 }
 
+// Matrix operator[]
+// Provides point into matrix using indexing
+template<Numeric T> std::expected<std::span<T>, std::string>
+Matrix<T>::operator[](Numeric auto idx) {
+    if (idx < 0 || idx > m)
+        return std::unexpected<std::string>("Invalid index into the matrix");
+
+    return std::span(data).subspan(idx*n, n);
+}
+
 // Matrix operator|
 // Provides support for augmenting matrix with a column vector
 template<Numeric T> std::expected<Matrix<T>, std::string>
@@ -298,7 +308,7 @@ operator<<(std::ostream& os, const Matrix<T>& mat) {
 
 #pragma endregion
 
-#pragma region HelperImplementation
+#pragma region HelperImplementation (QOL)
 
 // Matrix operator|
 // provides support for error and result propogation during augmentation
@@ -371,6 +381,15 @@ operator*(const Matrix<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs
         return rhs;
     return lhs * rhs.value();
 }
+
+// Matrix operator[]
+// provides support for chaining and refernce into a expected span
+// template<Numeric T> std::expected<T&, std::string>
+// operator[](std::expected<std::span<T>, std::string> indexable, Numeric auto idx) {
+//     if (!indexable.has_value())
+//        return indexable;
+//    return &indexable.value()[idx];
+// }
 
 #pragma endregion
 

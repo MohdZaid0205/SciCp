@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ostream>
 #include <vector>
+#include <span>
 #include <cmath>
 #include <expected>
 
@@ -78,15 +79,7 @@ class Matrix {
         std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other) const;
         std::expected<Matrix<T>, std::string> operator*(const Vector<T>& other) const;
 
-        class Operations {
-            static Matrix<T> gaussian(const Matrix<T>& matrix);
-            static Matrix<T> cholesky(const Matrix<T>& matrix);
-            static Matrix<T> LU(const Matrix<T>& matrix);
-            static Matrix<T> GS(const Matrix<T>& matrix);
-            static Matrix<T> GR(const Matrix<T>& matrix);
-            static Matrix<T> HH(const Matrix<T>& matrix);
-        };
-
+        std::expected<std::span<T>, std::string> operator[](Numeric auto idx);
         std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other) const;
         std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
         bool operator==(const Matrix<T>& other) const;
@@ -96,3 +89,13 @@ class Matrix {
     public:
         friend class Vector<T>;
 };
+
+
+// Required Functions for implementation
+template<Numeric T> Matrix<T> gaussian(const Matrix<T>& matrix);
+template<Numeric T> Matrix<T> cholesky(const Matrix<T>& matrix);
+template<Numeric T> Matrix<T> LU(const Matrix<T>& matrix);
+template<Numeric T> Matrix<T> GS(const Matrix<T>& matrix);
+template<Numeric T> Matrix<T> GR(const Matrix<T>& matrix);
+template<Numeric T> Matrix<T> HH(const Matrix<T>& matrix);
+
