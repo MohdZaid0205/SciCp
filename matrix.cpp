@@ -396,17 +396,19 @@ operator*(const Matrix<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs
 #pragma region AlgorithmsImplementation
 
 template<Numeric T> std::expected<Matrix<T>, std::string>
-reduction(Matrix<T> &matrix) {
+reduction(Matrix<T> &matrix, bool augmented) {
 
     std::vector<std::vector<T>> rows;
     for (int i=0; i<matrix.m; i++)
         if (matrix[i].has_value())
             rows.push_back(matrix[i].value());
 
-    for (int i=0; i<matrix.n; i++) {
+    auto _n = rows[0].size();
+    auto _m = rows.size();
+    for (int i=0; i<std::min(_m, _n); i++) {
         int m = i;
-        for (int j=i+1; j<matrix.m; j++) {
-            if (std::abs(rows[i][j]) > std::abs(rows[i][i]))
+        for (int j=i+1; j<_m; j++) {
+            if (std::abs(rows[j][i]) > std::abs(rows[i][i]))
                 m = j;
         }
         auto tm = rows[m];
@@ -414,18 +416,27 @@ reduction(Matrix<T> &matrix) {
         rows[i] = tm;
 
         T pivot = rows[i][i];
-        if (pivot == 0)
-            return std::unexpected<std::string>("Encounterd pivot 0 while reduction");
+        if (pivot < 1/PRECISION_FACTOR)
+            return std::unexpected<std::string>("Singular system (Infinte Soutions), pivot=0");
 
-        for (int j=0; j<matrix.n; j++) {
+        if (augmented) {
+            bool zero_coeff = true;
+            for (int j=0; j<_n-1; j++)
+                if (std::abs(rows[i][j]) > 1/PRECISION_FACTOR)
+                    zero_coeff = false;
+            if (zero_coeff && std::abs(rows[i][_n-1]) > 1/PRECISION_FACTOR) {
+                return std::unexpected<std::string>("Augmented matrix is inconsistant");
+            }
+        }
+
+        for (int j=0; j<_n; j++) {
            rows[i][j] /= pivot;
         }
 
-        for (int j=i+1; j<matrix.m; j++) {
+        for (int j=i+1; j<_m; j++) {
             T factor = rows[j][i];
-            for (int k=0; k<matrix.n; k++) {
+            for (int k=0; k<_n; k++)
                 rows[j][k] += -factor*rows[i][k];
-            }
         }
     }
 
@@ -446,22 +457,26 @@ int main(int argc, char** argv) {
     auto vec1 = Vector<double>({1, 0, 0}, 3);
     auto vec2 = Vector<double>({0, 1, 0}, 3);
     auto vec3 = Vector<double>({0, 0, 1}, 3);
+    auto vec4 = Vector<double>({3, 5, 6}, 3);
     std::cout << "VEC 1" << " " << vec1 << std::endl;
     std::cout << "VEC 2" << " " << vec2 << std::endl;
     std::cout << "VEC 3" << " " << vec3 << std::endl;
     auto aug1 = vec2 | vec1 | vec3;
     auto mat1 = aug1.value();
-    auto mat2 = Matrix<double>({
+    auto mat2 = (Matrix<double>({
             1, 2, 3,
             4, 5, 6,
             7, 8, 9,
-        }, 3, 3);
+        }, 3, 3) | vec4).value();
     std::cout << "MAT 1" << " " << mat1 << std::endl;
     std::cout << "MAT 2" << " " << mat2 << std::endl;
-    auto mul1 = mat1 * mat2 * vec1;
-    auto mat3 = mul1.value();
-    std::cout << "MAT 3" << " " << mat3 << std::endl;
-    auto gaus = reduction(mat2).value();
-    std::cout << "GAUSS" << " " << gaus << std::endl;
+    // auto mul1 = mat1 * mat2 * vec1;
+    // auto mat3 = mul1.value();
+    // std::cout << "MAT 3" << " " << mat3 << std::endl;
+    auto gaus = reduction(mat2, true);
+    if (gaus.has_value())
+        std::cout << "GAUSS" << " " << gaus.value() << std::endl;
+    else
+        std::cout << "ERROR" << " " << gaus.error() << std::endl;
     return 0;
 }
