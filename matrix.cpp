@@ -230,12 +230,12 @@ Matrix<T>::operator*(const Vector<T>& other) const {
 
 // Matrix operator[]
 // Provides point into matrix using indexing
-template<Numeric T> std::expected<std::span<T>, std::string>
+template<Numeric T> std::expected<std::vector<T>, std::string>
 Matrix<T>::operator[](Numeric auto idx) {
     if (idx < 0 || idx > m)
         return std::unexpected<std::string>("Invalid index into the matrix");
-
-    return std::span(data).subspan(idx*n, n);
+    auto span = std::span(data).subspan(idx*n, n);
+    return std::vector<T>(span.begin(), span.end());
 }
 
 // Matrix operator|
@@ -393,6 +393,54 @@ operator*(const Matrix<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs
 
 #pragma endregion
 
+#pragma region AlgorithmsImplementation
+
+template<Numeric T> std::expected<Matrix<T>, std::string>
+reduction(Matrix<T> &matrix) {
+
+    std::vector<std::vector<T>> rows;
+    for (int i=0; i<matrix.m; i++)
+        if (matrix[i].has_value())
+            rows.push_back(matrix[i].value());
+
+    for (int i=0; i<matrix.n; i++) {
+        int m = i;
+        for (int j=i+1; j<matrix.m; j++) {
+            if (std::abs(rows[i][j]) > std::abs(rows[i][i]))
+                m = j;
+        }
+        auto tm = rows[m];
+        rows[m] = rows[i];
+        rows[i] = tm;
+
+        T pivot = rows[i][i];
+        if (pivot == 0)
+            return std::unexpected<std::string>("Encounterd pivot 0 while reduction");
+
+        for (int j=0; j<matrix.n; j++) {
+           rows[i][j] /= pivot;
+        }
+
+        for (int j=i+1; j<matrix.m; j++) {
+            T factor = rows[j][i];
+            for (int k=0; k<matrix.n; k++) {
+                rows[j][k] += -factor*rows[i][k];
+            }
+        }
+    }
+
+    std::vector<T> result;
+    for (auto& vec:rows)
+        for (auto& val:vec) {
+            auto rounded = std::round(val*PRECISION_FACTOR)/PRECISION_FACTOR;
+            result.push_back((rounded == 0) ? 0 : rounded);
+        }
+
+
+    return Matrix<T>(result, (int) matrix.m, (int) matrix.n);
+}
+
+#pragma endregion
 
 int main(int argc, char** argv) {
     auto vec1 = Vector<double>({1, 0, 0}, 3);
@@ -413,5 +461,7 @@ int main(int argc, char** argv) {
     auto mul1 = mat1 * mat2 * vec1;
     auto mat3 = mul1.value();
     std::cout << "MAT 3" << " " << mat3 << std::endl;
+    auto gaus = reduction(mat2).value();
+    std::cout << "GAUSS" << " " << gaus << std::endl;
     return 0;
 }

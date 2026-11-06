@@ -7,6 +7,7 @@
 #include <expected>
 
 #define PRECISION 6
+#define PRECISION_FACTOR 1e6
 
 // Concept for constraining precision of required matices and such with help of a generic
 // class that can represent number using matissa and exponent without requiring float/int
@@ -37,6 +38,8 @@ template<Numeric T>
 class Vector {
     private:
         std::vector<T> data;
+
+    public:
         long long int k;
 
     public:
@@ -65,6 +68,8 @@ template<Numeric T>
 class Matrix {
     private:
         std::vector<T> data;
+
+    public:
         long long m; // rows
         long long n; // cols
 
@@ -79,7 +84,7 @@ class Matrix {
         std::expected<Matrix<T>, std::string> operator*(const Matrix<T>& other) const;
         std::expected<Matrix<T>, std::string> operator*(const Vector<T>& other) const;
 
-        std::expected<std::span<T>, std::string> operator[](Numeric auto idx);
+        std::expected<std::vector<T>, std::string> operator[](Numeric auto idx);
         std::expected<Matrix<T>, std::string> operator|(const Vector<T>& other) const;
         std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
         bool operator==(const Matrix<T>& other) const;
@@ -92,10 +97,11 @@ class Matrix {
 
 
 // Required Functions for implementation
-template<Numeric T> Matrix<T> gaussian(const Matrix<T>& matrix);
-template<Numeric T> Matrix<T> cholesky(const Matrix<T>& matrix);
-template<Numeric T> Matrix<T> LU(const Matrix<T>& matrix);
-template<Numeric T> Matrix<T> GS(const Matrix<T>& matrix);
-template<Numeric T> Matrix<T> GR(const Matrix<T>& matrix);
-template<Numeric T> Matrix<T> HH(const Matrix<T>& matrix);
+template<Numeric T> std::expected<Matrix<T>, std::string> reduction(Matrix<T>& matrix);
+template<Numeric T> Matrix<T> gaussian(Matrix<T>& matrix);
+template<Numeric T> Matrix<T> cholesky(Matrix<T>& matrix);
+template<Numeric T> Matrix<T> LU(Matrix<T>& matrix);
+template<Numeric T> Matrix<T> GS(Matrix<T>& matrix);
+template<Numeric T> Matrix<T> GR(Matrix<T>& matrix);
+template<Numeric T> Matrix<T> HH(Matrix<T>& matrix);
 
