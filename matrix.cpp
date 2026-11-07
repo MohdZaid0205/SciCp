@@ -9,7 +9,7 @@ template<Numeric T> std::expected<Vector<T>, std::string>
 Vector<T>::operator+(const Vector<T>& other) const {
 
     if (k != other.k)
-        return std::unexpected<std::string>("Dimensions did not match");
+        return std::unexpected("Dimensions did not match");
 
     std::vector<T> add(k);
     for (int i=0; i<k; i++)
@@ -23,7 +23,7 @@ template<Numeric T> std::expected<Vector<T>, std::string>
 Vector<T>::operator-(const Vector<T>& other) const {
 
     if (k != other.k)
-        return std::unexpected<std::string>("Dimensions did not match");
+        return std::unexpected("Dimensions did not match");
 
     std::vector<T> sub(k);
     for (int i=0; i<k; i++)
@@ -58,7 +58,7 @@ Vector<T>::operator/(Numeric auto& other) const {
 // converts vector into matrix with sufficient dimensions
 template<Numeric T> Matrix<T>
 Vector<T>::col_mat() const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     return Matrix(data, (int) k, 1);
 }
 
@@ -66,7 +66,7 @@ Vector<T>::col_mat() const {
 // converts vector into matrix with sufficient dimentions
 template<Numeric T> Matrix<T>
 Vector<T>::row_mat() const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     return Matrix(data, 1, (int) k);
 }
 
@@ -81,7 +81,7 @@ Vector<T>::operator~() const {
     norm = std::sqrt(norm);
 
     if (norm == 0)
-        std::unexpected<std::string>("Normalization not possible as norm=0");
+        std::unexpected("Normalization not possible as norm=0");
 
     std::vector<T> result(k);
     for (int i=0; i<k; i++)
@@ -94,7 +94,7 @@ Vector<T>::operator~() const {
 // returns a new matrix equivalent to this augment other
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Vector<T>::operator|(const Vector<T>& other) const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     auto mat1 = this->col_mat();
     auto mat2 = other.col_mat();
     return mat1 | mat2;
@@ -104,7 +104,7 @@ Vector<T>::operator|(const Vector<T>& other) const {
 // returns new matrix equivalent to this augment other
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Vector<T>::operator|(const Matrix<T>& other) const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     auto mat1 = this->col_mat();
     auto mat2 = other;
     return mat1 | mat2;
@@ -150,7 +150,7 @@ template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator+(const Matrix<T>& other) const {
 
     if (m != other.m || n != other.n)
-        return std::unexpected<std::string>("Cannot + on matrices of incompatible sizes");
+        return std::unexpected("Cannot + on matrices of incompatible sizes");
 
     std::vector<T> result(m*n);
     for (int i=0; i<m*n; i++)
@@ -164,7 +164,7 @@ template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator-(const Matrix<T>& other) const {
 
     if (m != other.m || n != other.n)
-        return std::unexpected<std::string>("Cannot + on matrices of incompatible sizes");
+        return std::unexpected("Cannot + on matrices of incompatible sizes");
 
     std::vector<T> result(m*n);
     for (int i=0; i<m*n; i++)
@@ -199,7 +199,7 @@ Matrix<T>::operator/(Numeric auto& other) const {
 // Provides support for matrix multiplication if possible
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator*(const Matrix<T>& other) const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     auto n1 = this->n;
     auto m1 = this->m;
     auto n2 = other.n;
@@ -208,7 +208,7 @@ Matrix<T>::operator*(const Matrix<T>& other) const {
     auto data2 = other.data;
 
     if (n1 != m2)
-        return std::unexpected<std::string>("Improper dimensions for matrix multiplication");
+        return std::unexpected("Improper dimensions for matrix multiplication");
 
     std::vector<T> result(m1*n2, 0);
     for (int i=0; i<m1; i++)
@@ -233,7 +233,7 @@ Matrix<T>::operator*(const Vector<T>& other) const {
 template<Numeric T> std::expected<std::vector<T>, std::string>
 Matrix<T>::operator[](Numeric auto idx) {
     if (idx < 0 || idx > m)
-        return std::unexpected<std::string>("Invalid index into the matrix");
+        return std::unexpected("Invalid index into the matrix");
     auto span = std::span(data).subspan(idx*n, n);
     return std::vector<T>(span.begin(), span.end());
 }
@@ -242,7 +242,7 @@ Matrix<T>::operator[](Numeric auto idx) {
 // Provides support for augmenting matrix with a column vector
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator|(const Vector<T>& other) const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     auto mat1 = *this;
     auto mat2 = other.col_mat();
     return mat1 | mat2;
@@ -252,12 +252,12 @@ Matrix<T>::operator|(const Vector<T>& other) const {
 // Provides support for augmenting matrix with another matrix
 template<Numeric T> std::expected<Matrix<T>, std::string>
 Matrix<T>::operator|(const Matrix<T>& other) const {
-    // return std::unexpected<std::string>("NOT IMPLEMENTED");
+    // return std::unexpected("NOT IMPLEMENTED");
     auto k = other.n;
     auto s = n + k;
 
     if (m != other.m)
-        return std::unexpected<std::string>("cannot augment different sized columns");
+        return std::unexpected("cannot augment different sized columns");
 
     std::vector<T> result((n + other.n)*m);
     for (int i=0; i<m;i++) {
@@ -395,8 +395,13 @@ operator*(const Matrix<T>& lhs, const std::expected<Matrix<T>, std::string>& rhs
 
 #pragma region AlgorithmsImplementation
 
-template<Numeric T> std::expected<Matrix<T>, std::string>
-reduction(Matrix<T> &matrix, bool augmented) {
+template<Numeric T> std::expected<Vector<T>, std::string>
+gaussian(Matrix<T>& coeffs, Vector<T>& value) {
+
+    auto augment = coeffs | value;
+    if (!augment.has_value())
+        return std::unexpected("Cannot apply gaussian to inconsistant coeff and value");
+    auto matrix = augment.value();
 
     std::vector<std::vector<T>> rows;
     for (int i=0; i<matrix.m; i++)
@@ -417,16 +422,14 @@ reduction(Matrix<T> &matrix, bool augmented) {
 
         T pivot = rows[i][i];
         if (pivot < 1/PRECISION_FACTOR)
-            return std::unexpected<std::string>("Singular system (Infinte Soutions), pivot=0");
+            return std::unexpected("Singular system (Infinte Soutions), pivot=0");
 
-        if (augmented) {
-            bool zero_coeff = true;
-            for (int j=0; j<_n-1; j++)
-                if (std::abs(rows[i][j]) > 1/PRECISION_FACTOR)
-                    zero_coeff = false;
-            if (zero_coeff && std::abs(rows[i][_n-1]) > 1/PRECISION_FACTOR) {
-                return std::unexpected<std::string>("Augmented matrix is inconsistant");
-            }
+        bool zero_coeff = true;
+        for (int j=0; j<_n-1; j++)
+            if (std::abs(rows[i][j]) > 1/PRECISION_FACTOR)
+                zero_coeff = false;
+        if (zero_coeff && std::abs(rows[i][_n-1]) > 1/PRECISION_FACTOR) {
+            return std::unexpected("Augmented matrix is inconsistant");
         }
 
         for (int j=0; j<_n; j++) {
@@ -440,15 +443,15 @@ reduction(Matrix<T> &matrix, bool augmented) {
         }
     }
 
-    std::vector<T> result;
+    std::vector<T> reduced;
     for (auto& vec:rows)
         for (auto& val:vec) {
             auto rounded = std::round(val*PRECISION_FACTOR)/PRECISION_FACTOR;
-            result.push_back((rounded == 0) ? 0 : rounded);
+            reduced.push_back((rounded == 0) ? 0 : rounded);
         }
 
 
-    return Matrix<T>(result, (int) matrix.m, (int) matrix.n);
+    return Vector<T>({}, 0);
 }
 
 #pragma endregion
@@ -463,17 +466,17 @@ int main(int argc, char** argv) {
     std::cout << "VEC 3" << " " << vec3 << std::endl;
     auto aug1 = vec2 | vec1 | vec3;
     auto mat1 = aug1.value();
-    auto mat2 = (Matrix<double>({
+    auto mat2 = Matrix<double>({
             1, 2, 3,
             4, 5, 6,
             7, 8, 9,
-        }, 3, 3) | vec4).value();
+        }, 3, 3);
     std::cout << "MAT 1" << " " << mat1 << std::endl;
     std::cout << "MAT 2" << " " << mat2 << std::endl;
     // auto mul1 = mat1 * mat2 * vec1;
     // auto mat3 = mul1.value();
     // std::cout << "MAT 3" << " " << mat3 << std::endl;
-    auto gaus = reduction(mat2, true);
+    auto gaus = gaussian(mat2, vec4);
     if (gaus.has_value())
         std::cout << "GAUSS" << " " << gaus.value() << std::endl;
     else

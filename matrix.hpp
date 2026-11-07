@@ -97,8 +97,7 @@ class Matrix {
 
 
 // Required Functions for implementation
-template<Numeric T> std::expected<Matrix<T>, std::string> reduction(Matrix<T>& matrix, bool aug);
-template<Numeric T> Matrix<T> gaussian(Matrix<T>& matrix, Vector<T>& value);
+template<Numeric T> std::expected<Vector<T>, std::string> gaussian(Matrix<T>& coeffs, Vector<T>& value);
 template<Numeric T> Matrix<T> cholesky(Matrix<T>& matrix);
 template<Numeric T> Matrix<T> LU(Matrix<T>& matrix);
 template<Numeric T> Matrix<T> GS(Matrix<T>& matrix);
