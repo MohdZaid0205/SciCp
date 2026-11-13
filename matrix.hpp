@@ -2,18 +2,38 @@
 #include <iostream>
 #include <ostream>
 #include <vector>
+#include <random>
+#include <cctype>
 #include <span>
 #include <cmath>
+#include <string>
+#include <utility>
 #include <expected>
 
-#define PRECISION 6
-#define PRECISION_FACTOR 1e6
+#define PRECISION 3
+#define PRECISION_FACTOR 1e3
+
+#define COLOR_FOREGROUND(r, g, b) "\033[38;2;"#r";"#g";"#b"m"
+#define COLOR_BACKGROUND(r, g, b) "\033[48;2;"#r";"#g";"#b"m"
+#define RESET_FOREGROUND "\033[39m"
+#define RESET_BACKGROUND "\033[49m"
+
+#define PRI_BACK COLOR_BACKGROUND(  0, 163, 133)
+#define SEC_BACK COLOR_BACKGROUND(215, 215, 168)
+#define TER_BACK COLOR_BACKGROUND(  0,  73,  58)
+
+#define PRI_FORE COLOR_FOREGROUND(  0, 163, 133)
+#define SEC_FORE COLOR_FOREGROUND(215, 215, 168)
+#define TER_FORE COLOR_FOREGROUND(  0,  73,  58)
+
+#define ERR_FORE COLOR_FOREGROUND(220,  20,  60)
+#define ERR_BACK COLOR_BACKGROUND(220,  20,  60)
 
 // Concept for constraining precision of required matices and such with help of a generic
 // class that can represent number using matissa and exponent without requiring float/int
 
 template<typename T> concept Floating = std::same_as<T, float> || std::same_as<T, double>;
-template<typename T> concept Integer  = std::same_as<T, int>   || std::same_as<T, long>;
+template<typename T> concept Integer  = std::same_as<T, int>   || std::same_as<T, long>   || std::same_as<T, long long>;
 
 template<typename T> concept Arithematic = requires(T a, T b) {
     {a + b} -> std::same_as<T>;     // a + b -> T
@@ -75,6 +95,8 @@ class Matrix {
 
     public:
         Matrix(std::vector<T> _d, Integer auto _m, Integer auto _n): data(_d), m(_m), n(_n) {}
+        static Matrix<T> identity(int s);
+        Matrix<T> transpose() const;
 
         std::expected<Matrix<T>, std::string> operator+(const Matrix<T>& other) const;
         std::expected<Matrix<T>, std::string> operator-(const Matrix<T>& other) const;
@@ -89,18 +111,22 @@ class Matrix {
         std::expected<Matrix<T>, std::string> operator|(const Matrix<T>& other) const;
         bool operator==(const Matrix<T>& other) const;
 
+        T&       operator()(int i, int j);
+        const T& operator()(int i, int j) const;
+
         friend std::ostream& operator<< <T>(std::ostream& os, const Matrix<T>& vec);
 
     public:
         friend class Vector<T>;
 };
 
+template<typename T> using MatPair = std::pair<Matrix<T>, Matrix<T>>;
 
 // Required Functions for implementation
 template<Numeric T> std::expected<Vector<T>, std::string> gaussian(Matrix<T>& coeffs, Vector<T>& value);
-template<Numeric T> Matrix<T> cholesky(Matrix<T>& matrix);
-template<Numeric T> Matrix<T> LU(Matrix<T>& matrix);
-template<Numeric T> Matrix<T> GS(Matrix<T>& matrix);
-template<Numeric T> Matrix<T> GR(Matrix<T>& matrix);
-template<Numeric T> Matrix<T> HH(Matrix<T>& matrix);
+template<Numeric T> std::expected<Matrix<T>, std::string> cholesky(const Matrix<T>& A);
+template<Numeric T> std::expected<MatPair<T>, std::string>  LU(const Matrix<T>& A);         // {L, U}
+template<Numeric T> std::expected<MatPair<T>, std::string>  GS(const Matrix<T>& A);         // {Q, R}
+template<Numeric T> std::expected<MatPair<T>, std::string>  HH(const Matrix<T>& A);         // {Q, R}
+template<Numeric T> std::expected<MatPair<T>, std::string>  GR(const Matrix<T>& A);         // {Q, R}
 
