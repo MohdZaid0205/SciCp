@@ -674,6 +674,77 @@ GR(const Matrix<T>& A) {
     return MatPair<T>(Q, R);
 }
 
+// Randomized Gram-Schmidt
+template<Numeric T> std::expected<MatPair<T>, std::string>
+RGS(const Matrix<T>& A, int k) {
+    
+    int m = (int) A.m, n = (int) A.n;
+    if (m < n)
+        return std::unexpected("Randomized Gram-Schmidt requires rows >= cols");
+
+    if (k <= 0) k = std::min(m, 4*n);
+    if (k < n || k > m)
+        return std::unexpected("Sketch size k must satisfy cols <= k <= rows");
+
+    // Theta: k x m Gaussian sketch, entries ~ N(0, 1/k)
+    auto Theta = Matrix<T>(std::vector<T>(k*m, T(0)), k, m);
+    std::mt19937 rng(0);
+    std::normal_distribution<double> gauss(0.0, 1.0 / std::sqrt((double) k));
+    for (int i=0; i<k; i++)
+        for (int j=0; j<m; j++)
+            Theta(i, j) = (T) gauss(rng);
+
+    // P = Theta * A  (sketch of every column, k x n)
+    auto P = Matrix<T>(std::vector<T>(k*n, T(0)), k, n);
+    for (int l=0; l<k; l++)
+        for (int j=0; j<n; j++) {
+            T sum = 0;
+            for (int r=0; r<m; r++) sum += Theta(l, r) * A(r, j);
+            P(l, j) = sum;
+        }
+
+    auto Q = Matrix<T>(std::vector<T>(m*n, T(0)), m, n);
+    auto S = Matrix<T>(std::vector<T>(k*n, T(0)), k, n);   // S = Theta * Q, kept in sketch space
+    auto R = Matrix<T>(std::vector<T>(n*n, T(0)), n, n);
+
+    for (int j=0; j<n; j++) {
+        // coefficients from the sketch only: r = S^T p_j  (length-k dot products)
+        for (int i=0; i<j; i++) {
+            T dot = 0;
+            for (int l=0; l<k; l++) dot += S(l, i) * P(l, j);
+            R(i, j) = dot;
+        }
+
+        // v = a_j - Q r   (the only length-m work)
+        std::vector<T> v(m);
+        for (int r=0; r<m; r++) {
+            v[r] = A(r, j);
+            for (int i=0; i<j; i++) v[r] -= R(i, j) * Q(r, i);
+        }
+
+        // sketch of v without touching Theta again: Theta*v = p_j - S r
+        std::vector<T> s(k);
+        for (int l=0; l<k; l++) {
+            s[l] = P(l, j);
+            for (int i=0; i<j; i++) s[l] -= R(i, j) * S(l, i);
+        }
+
+        // normalize using the sketched norm
+        T norm = 0, pnorm = 0;
+        for (int l=0; l<k; l++) { norm += s[l]*s[l]; pnorm += P(l, j)*P(l, j); }
+        norm  = std::sqrt(norm);
+        pnorm = std::sqrt(pnorm);
+
+        if (pnorm == 0 || norm < 100 * std::numeric_limits<T>::epsilon() * pnorm)
+            return std::unexpected("Columns are linearly dependent");
+
+        R(j, j) = norm;
+        for (int r=0; r<m; r++) Q(r, j) = v[r] / norm;
+        for (int l=0; l<k; l++) S(l, j) = s[l] / norm;
+    }
+    return MatPair<T>(Q, R);
+}
+
 #pragma endregion
 
 #define MENU_LISTING(i, name, description)          \
@@ -814,6 +885,7 @@ int main(int argc, char** argv) {
     MENU_LISTING(3, "Gram-Schmid", "    Transform A to QR (A=QR)");
     MENU_LISTING(4, "House Holder", "   Transform A to QR (A=QR)");
     MENU_LISTING(5, "Givens Rotation", "Transform A to QR (A=QR)");
+    MENU_LISTING(6, "Randomized Gram-Schmidt", " From Paper");
 
     int choice = -1;
     std::cout << SEC_FORE << "CHOICE" << RESET_FOREGROUND << " : " << PRI_FORE;
@@ -887,7 +959,20 @@ int main(int argc, char** argv) {
         case 5:
             PRINT_PAIR("Q", "R", GR(matrix));
             break;
-
+        case 6: {
+            auto res = RGS(matrix);
+            if (!res.has_value()) {
+                PRINT_ERROR(res.error());
+                break;
+            }
+            auto& [Q, R] = res.value();
+            PRINT_MATRIX("Q", Q);
+            PRINT_MATRIX("R", R);
+            auto QtQ = Q.transpose() * Q;
+            if (QtQ.has_value())
+                PRINT_MATRIX("Q^T Q", QtQ.value());
+            break;
+        }
         default:
             PRINT_ERROR("Invalid choice, pick a number between 0 and 5");
             return 1;

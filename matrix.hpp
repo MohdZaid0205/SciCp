@@ -130,3 +130,4 @@ template<Numeric T> std::expected<MatPair<T>, std::string>  GS(const Matrix<T>& 
 template<Numeric T> std::expected<MatPair<T>, std::string>  HH(const Matrix<T>& A);         // {Q, R}
 template<Numeric T> std::expected<MatPair<T>, std::string>  GR(const Matrix<T>& A);         // {Q, R}
 
+template<Numeric T> std::expected<MatPair<T>, std::string> RGS(const Matrix<T>& A, int k = 0);
